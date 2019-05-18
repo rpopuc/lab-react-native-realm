@@ -80,7 +80,7 @@ export default function Main() {
           onChangeText={setInput}
         />
         <Submit onPress={handleAddRepository}>
-          <Icon name="add" size={22} color="#FFF"/>
+          <Icon name="add" size={22} color="#FFF" />
         </Submit>
       </Form>
 
@@ -89,7 +89,7 @@ export default function Main() {
         data={repositories}
         keyExtractor={item => String(item.id)}
         renderItem={({ item }) => (
-          <Repository data={item} onRefresh={() => handleRefreshRepository(item)}/>
+          <Repository data={item} onRefresh={() => handleRefreshRepository(item)} />
         )}
       />
     </Container>
