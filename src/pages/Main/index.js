@@ -1,59 +1,97 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Keyboard } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import api from '~/services/api';
+import getRealm from '~/services/realm';
+
+import Repository from '~/components/Repository';
 
 import {
-  Text, Image, StyleSheet, Dimensions, ImageBackground, StatusBar,
-} from 'react-native';
+  Container, Title, Form, Input, Submit, List,
+} from './styles';
 
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  fileName: {
-    fontWeight: 'bold',
-    marginTop: 5,
-  },
-  instructions: {
-    color: '#DDD',
-    fontSize: 14,
-    marginTop: 20,
-    textAlign: 'center',
-  },
-  logo: {
-    height: Dimensions.get('window').height * 0.11,
-    marginVertical: Dimensions.get('window').height * 0.11,
-    width: Dimensions.get('window').height * 0.11 * (1950 / 662),
-  },
-  welcome: {
-    color: '#fff',
-    fontSize: 22,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-});
+export default function Main() {
+  const [input, setInput] = useState('');
+  const [error, setError] = useState(false);
+  const [repositories, setRepositories] = useState([]);
 
-const Main = () => (
-  <ImageBackground
-    source={{
-      uri: 'https://s3-sa-east-1.amazonaws.com/rocketseat-cdn/background.png',
-    }}
-    style={styles.container}
-    resizeMode="cover"
-  >
-    <StatusBar barStyle="light-content" backgroundColor="#7159c1" />
-    <Image
-      source={{
-        uri: 'https://s3-sa-east-1.amazonaws.com/rocketseat-cdn/rocketseat_logo.png',
-      }}
-      style={styles.logo}
-      resizeMode="contain"
-    />
-    <Text style={styles.welcome}>Bem-vindo ao Template Básico!</Text>
-    <Text style={styles.instructions}>Essa é a tela principal da sua aplicação =)</Text>
-    <Text style={styles.instructions}>Você pode editar a tela no arquivo:</Text>
-    <Text style={[styles.instructions, styles.fileName]}>src/pages/Main/index.js</Text>
-  </ImageBackground>
-);
+  async function saveRepository(repository) {
+    const data = {
+      id: repository.id,
+      name: repository.name,
+      fullName: repository.full_name,
+      description: repository.description,
+      stars: repository.stargazers_count,
+      forks: repository.forks_count,
+    };
 
-export default Main;
+    const realm = await getRealm();
+
+    realm.write(() => {
+      realm.create('Repository', data, 'modified');
+    });
+
+    return data;
+  }
+
+  async function handleAddRepository() {
+    try {
+      const response = await api.get(`/repos/${input}`);
+
+      await saveRepository(response.data);
+
+      setInput('');
+      setError(false);
+      Keyboard.dismiss();
+    } catch (err) {
+      setError(true);
+    }
+  }
+
+  useEffect(() => {
+    async function loadRepositories() {
+      const realm = await getRealm();
+
+      const data = realm.objects('Repository').sorted('stars', true);
+
+      setRepositories(data);
+    }
+
+    loadRepositories();
+  }, []);
+
+  async function handleRefreshRepository(repository) {
+    const response = await api.get(`/repos/${repository.fullName}`);
+    const data = await saveRepository(response.data);
+
+    setRepositories(repositories.map(repo => (repo.id === data.id ? data : repo)));
+  }
+
+  return (
+    <Container>
+      <Title>Repositórios</Title>
+      <Form>
+        <Input
+          autoCaptalize="none"
+          error={error}
+          autoCorrect={false}
+          placeHolder="Procurar um repositório..."
+          value={input}
+          onChangeText={setInput}
+        />
+        <Submit onPress={handleAddRepository}>
+          <Icon name="add" size={22} color="#FFF"/>
+        </Submit>
+      </Form>
+
+      <List
+        keyboardShouldPersistTaps="handled"
+        data={repositories}
+        keyExtractor={item => String(item.id)}
+        renderItem={({ item }) => (
+          <Repository data={item} onRefresh={() => handleRefreshRepository(item)}/>
+        )}
+      />
+    </Container>
+  );
+}
