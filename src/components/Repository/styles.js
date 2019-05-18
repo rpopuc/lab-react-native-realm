@@ -1,4 +1,13 @@
+// ---------------------------------------------------------
+// Importação das dependências dos componentes de estilo
+// ---------------------------------------------------------
+
+// Importa a classe que contém os componentes básicos de estilo
 import styled from 'styled-components/native';
+
+// ---------------------------------------------------------
+// Definição dos componetes de estilo
+// ---------------------------------------------------------
 
 export const Container = styled.View`
   padding: 20px;

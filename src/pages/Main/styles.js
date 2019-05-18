@@ -1,7 +1,20 @@
+// ---------------------------------------------------------
+// Importação das dependências dos componentes de estilo
+// ---------------------------------------------------------
+
+// Importa a classe que contém os componentes básicos de estilo
 import styled from 'styled-components/native';
 
+// Importa o componente de desenho de gradiente de cores
 import LinearGradient from 'react-native-linear-gradient';
+
+// Obtém função de cálculo da altura da Statusbar
+// Retorna valor apenas em dispositivos iOS
 import { getStatusBarHeight } from 'react-native-status-bar-height';
+
+// ---------------------------------------------------------
+// Definição dos componetes de estilo
+// ---------------------------------------------------------
 
 export const Container = styled(LinearGradient).attrs({
   colors: ['#7159c1', '#9b49c1'],
